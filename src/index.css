@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  body {
+    background-color: #05091A;
+    color: #E2ECF9;
+    font-family: 'JetBrains Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #05091A; }
+  ::-webkit-scrollbar-thumb { background: #1C2A45; border-radius: 2px; }
+}
+
+@layer components {
+  .prob-bar {
+    @apply h-1.5 rounded-full bg-border overflow-hidden;
+  }
+  .prob-fill {
+    @apply h-full rounded-full transition-all duration-700 ease-out;
+  }
+  .card {
+    @apply bg-card border border-border rounded-xl p-4;
+  }
+  .card2 {
+    @apply bg-card2 border border-border rounded-lg p-3;
+  }
+  .tag {
+    @apply text-xs font-mono text-muted uppercase tracking-widest;
+  }
+  .btn-primary {
+    @apply bg-green text-bg font-bold py-2 px-5 rounded-lg hover:opacity-90 transition-opacity;
+  }
+  .btn-ghost {
+    @apply border border-border text-muted font-mono py-2 px-5 rounded-lg hover:border-green hover:text-green transition-colors;
+  }
+  .input-field {
+    @apply bg-card border border-border rounded-lg px-3 py-2 text-center text-lg font-bold w-14 focus:outline-none focus:border-green transition-colors;
+  }
+}
+
+/* Animación del valor numérico */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.count-anim { animation: countUp 0.4s ease forwards; }

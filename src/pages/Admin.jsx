@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ref, set } from 'firebase/database';
-import { db } from '../firebase';
+import { signOut } from 'firebase/auth';
+import { db, auth } from '../firebase';
 import { useApp } from '../App';
 import { TEAMS, GROUPS } from '../data/teams';
 import { FIXTURES_BY_GROUP } from '../data/fixtures';
@@ -18,7 +19,7 @@ function MatchRow({ fixture, existingResult, onSave }) {
   async function handleSave() {
     const h = parseInt(hs);
     const a = parseInt(as_);
-    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return;
+    if (isNaN(h) || isNaN(a) || h < 0 || a < 0 || h > 20 || a > 20) return;
     setSaving(true);
     await onSave(fixture.id, h, a);
     setSaving(false);
@@ -100,7 +101,7 @@ function MatchRow({ fixture, existingResult, onSave }) {
 }
 
 export default function Admin() {
-  const { results } = useApp();
+  const { results, user } = useApp();
   const [activeGroup, setActiveGroup] = useState('A');
 
   async function saveResult(matchId, homeScore, awayScore, played = true) {
@@ -116,12 +117,20 @@ export default function Admin() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <div className="tag mb-1">Ingreso de resultados</div>
-        <h1 className="text-xl font-bold">Resultados</h1>
-        <p className="text-xs text-muted mt-1">
-          Las predicciones se recalculan automáticamente para todos los usuarios.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="tag mb-1">Ingreso de resultados</div>
+          <h1 className="text-xl font-bold">Resultados</h1>
+          <p className="text-xs text-muted mt-1">
+            Las predicciones se recalculan automáticamente para todos los usuarios.
+          </p>
+        </div>
+        <button
+          onClick={() => signOut(auth)}
+          className="text-xs text-muted hover:text-white transition-colors px-2 py-1 mt-1"
+        >
+          Cerrar sesión
+        </button>
       </div>
 
       {/* Selector de grupo */}

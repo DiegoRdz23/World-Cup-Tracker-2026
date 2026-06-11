@@ -1,16 +1,25 @@
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { ref, onValue } from 'firebase/database';
-import { db } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { db, auth } from './firebase';
 import { runMonteCarlo } from './model/simulation';
 import Home    from './pages/Home';
 import Mexico  from './pages/Mexico';
 import Groups  from './pages/Groups';
 import Admin   from './pages/Admin';
+import Login   from './pages/Login';
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 export const AppCtx = createContext(null);
 export const useApp = () => useContext(AppCtx);
+
+// ─── Ruta protegida (redirige a /login si no hay sesión) ─────────────────────
+function ProtectedRoute({ children }) {
+  const { user, authLoading } = useApp();
+  if (authLoading) return null;
+  return user ? children : <Navigate to="/login" replace />;
+}
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 function Nav() {
@@ -46,8 +55,10 @@ function Nav() {
 
 // ─── App root ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [results,  setResults]  = useState({});
-  const [loading,  setLoading]  = useState(true);
+  const [results,     setResults]     = useState({});
+  const [loading,     setLoading]     = useState(true);
+  const [user,        setUser]        = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Escuchar Firebase en tiempo real
   useEffect(() => {
@@ -56,8 +67,16 @@ export default function App() {
       setResults(snap.val() ?? {});
       setLoading(false);
     }, () => {
-      // Si falla (sin config), continuar sin resultados
       setLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  // Escuchar estado de autenticación
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, currentUser => {
+      setUser(currentUser);
+      setAuthLoading(false);
     });
     return unsub;
   }, []);
@@ -68,7 +87,7 @@ export default function App() {
   }, [results]);
 
   return (
-    <AppCtx.Provider value={{ results, predictions, loading }}>
+    <AppCtx.Provider value={{ results, predictions, loading, user, authLoading }}>
       <div className="min-h-screen bg-bg text-white">
         <Nav />
         <main className="max-w-3xl mx-auto px-4 py-6">
@@ -78,10 +97,13 @@ export default function App() {
             </div>
           ) : (
             <Routes>
-              <Route path="/"        element={<Home />} />
-              <Route path="/mexico"  element={<Mexico />} />
-              <Route path="/grupos"  element={<Groups />} />
-              <Route path="/admin"   element={<Admin />} />
+              <Route path="/"       element={<Home />} />
+              <Route path="/mexico" element={<Mexico />} />
+              <Route path="/grupos" element={<Groups />} />
+              <Route path="/login"  element={<Login />} />
+              <Route path="/admin"  element={
+                <ProtectedRoute><Admin /></ProtectedRoute>
+              } />
             </Routes>
           )}
         </main>

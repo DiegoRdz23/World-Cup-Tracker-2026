@@ -11,6 +11,7 @@ export default {
         green:    '#00D463',
         gold:     '#FFD600',
         red:      '#FF3B30',
+        ice:      '#00B4FF',
         muted:    '#6B84A8',
       },
       fontFamily: {

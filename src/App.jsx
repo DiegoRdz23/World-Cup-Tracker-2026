@@ -39,10 +39,10 @@ function Nav() {
           <Link
             key={l.to}
             to={l.to}
-            className={`px-3 py-1 rounded text-sm whitespace-nowrap transition-colors ${
+            className={`px-3 py-1 text-sm whitespace-nowrap transition-all border-b-2 ${
               pathname === l.to
-                ? 'bg-card2 text-white font-bold'
-                : 'text-muted hover:text-white'
+                ? 'text-white font-bold border-green'
+                : 'text-muted hover:text-white border-transparent'
             }`}
           >
             {l.label}

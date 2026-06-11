@@ -69,40 +69,61 @@ export default function Mexico() {
   return (
     <div className="space-y-6">
       {/* Header México */}
-      <div className="card bg-card2 border-green/40">
-        <div className="tag mb-3">🇲🇽 Selección Mexicana</div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center">
-            <div className="text-5xl font-bold text-green tabular-nums">
-              {Math.round((probs.pQualify ?? 0) * 100)}%
-            </div>
-            <div className="tag mt-1">clasifica</div>
-            <ProbBar pct={probs.pQualify ?? 0} color="#00D463" height={6} />
-          </div>
-          <div className="text-center">
-            <div className="text-5xl font-bold text-gold tabular-nums">
-              {Math.round((probs.pChampion ?? 0) * 1000) / 10}%
-            </div>
-            <div className="tag mt-1">campeón</div>
-            <ProbBar pct={probs.pChampion ?? 0} color="#FFD600" height={6} />
-          </div>
-        </div>
-
-        {/* Camino al título */}
-        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-          {[
-            { label: 'Clasificar',  p: probs.pQualify  ?? 0, color: '#00D463' },
-            { label: 'Top 8',       p: probs.pTop8     ?? 0, color: '#00C0FF' },
-            { label: 'Final',       p: probs.pFinal    ?? 0, color: '#FFD600' },
-            { label: 'Campeón',     p: probs.pChampion ?? 0, color: '#FFD600' },
-          ].map(({ label, p, color }) => (
-            <div key={label} className="card py-2 px-1">
-              <div className="text-lg font-bold tabular-nums" style={{ color }}>
-                {Math.round(p * 100)}%
+      <div className="card bg-card2 border-green/40 relative overflow-hidden">
+        {/* Ambient verde sobre la card */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(0,212,99,0.08) 0%, transparent 70%)',
+          }}
+        />
+        <div className="relative z-10">
+          <div className="tag mb-4">🇲🇽 Selección Mexicana</div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="text-6xl font-bold text-green tabular-nums leading-none">
+                {Math.round((probs.pQualify ?? 0) * 100)}%
               </div>
-              <div className="text-xs text-muted">{label}</div>
+              <div className="tag mt-2">clasifica</div>
+              <div className="mt-2">
+                <ProbBar pct={probs.pQualify ?? 0} color="#00D463" height={6} />
+              </div>
             </div>
-          ))}
+            <div className="text-center">
+              <div className="text-6xl font-bold text-gold tabular-nums leading-none">
+                {Math.round((probs.pChampion ?? 0) * 1000) / 10}%
+              </div>
+              <div className="tag mt-2">campeón</div>
+              <div className="mt-2">
+                <ProbBar pct={probs.pChampion ?? 0} color="#FFD600" height={6} />
+              </div>
+            </div>
+          </div>
+
+          {/* Camino al título */}
+          <div className="mt-5">
+            <div className="tag mb-2">Camino al título</div>
+            <div className="grid grid-cols-4 gap-2 text-center">
+              {[
+                { label: 'Clasificar', p: probs.pQualify  ?? 0, color: '#00D463' },
+                { label: 'Top 8',      p: probs.pTop8     ?? 0, color: '#00B4FF' },
+                { label: 'Final',      p: probs.pFinal    ?? 0, color: '#FFD600' },
+                { label: 'Campeón',    p: probs.pChampion ?? 0, color: '#FFD600' },
+              ].map(({ label, p, color }, i, arr) => (
+                <div key={label} className="relative">
+                  <div className="card py-3 px-1">
+                    <div className="text-lg font-bold tabular-nums" style={{ color }}>
+                      {Math.round(p * 100)}%
+                    </div>
+                    <div className="text-xs text-muted mt-0.5">{label}</div>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <span className="absolute -right-2 top-1/2 -translate-y-1/2 text-border text-xs z-10">›</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

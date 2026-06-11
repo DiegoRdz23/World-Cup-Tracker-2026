@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useApp } from '../App';
 import { TEAMS, GROUPS } from '../data/teams';
 import { getCurrentStandings } from '../model/simulation';
@@ -21,46 +22,33 @@ function GroupTable({ groupKey }) {
         const advancing = i < 2;
 
         return (
-          <div
-            key={s.code}
-            className={`flex items-center gap-2 py-1 px-2 rounded ${
-              isMex
-                ? 'bg-green/10 border border-green/20'
-                : advancing
-                ? ''
-                : 'opacity-60'
-            }`}
-          >
-            <span className="text-muted text-xs w-4">{i + 1}</span>
-            <span className="text-base">{team.flag}</span>
-            <span className={`flex-1 text-sm ${isMex ? 'text-green font-bold' : ''}`}>
-              {team.name}
-            </span>
-            <span className="text-xs tabular-nums text-muted">
-              {s.pj > 0 ? `${s.pj}j` : '–'}
-            </span>
-            <span className="text-sm font-bold tabular-nums w-5 text-right">{s.pts}</span>
-            <div className="w-20 flex items-center gap-1">
-              <div
-                className="flex-1 rounded-full overflow-hidden"
-                style={{ height: 4, backgroundColor: '#1C2A45' }}
-              >
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${Math.round(pQ * 100)}%`,
-                    backgroundColor: pQ >= 0.6 ? '#00D463' : pQ >= 0.35 ? '#FFD600' : '#FF3B30',
-                  }}
-                />
-              </div>
-              <span
-                className="text-xs tabular-nums w-7 text-right font-bold"
-                style={{ color: pQ >= 0.6 ? '#00D463' : pQ >= 0.35 ? '#FFD600' : '#FF3B30' }}
-              >
-                {Math.round(pQ * 100)}%
+          <Fragment key={s.code}>
+            {i === 2 && (
+              <div className="border-t border-dashed border-border/60 my-1" />
+            )}
+            <div
+              className={`flex items-center gap-2 py-1 px-2 rounded ${
+                isMex
+                  ? 'bg-green/10 border border-green/20'
+                  : advancing
+                  ? ''
+                  : 'opacity-55'
+              }`}
+            >
+              <span className="text-muted text-xs w-4">{i + 1}</span>
+              <span className="text-base">{team.flag}</span>
+              <span className={`flex-1 text-sm ${isMex ? 'text-green font-bold' : ''}`}>
+                {team.name}
               </span>
+              <span className="text-xs tabular-nums text-muted">
+                {s.pj > 0 ? `${s.pj}j` : '–'}
+              </span>
+              <span className="text-sm font-bold tabular-nums w-5 text-right">{s.pts}</span>
+              <div className="w-20 flex items-center gap-1">
+                <ProbBar pct={pQ} height={4} showLabel />
+              </div>
             </div>
-          </div>
+          </Fragment>
         );
       })}
     </div>

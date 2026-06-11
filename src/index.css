@@ -44,9 +44,31 @@
   }
 }
 
+/* Entrada suave de tarjetas */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.45s ease-out forwards;
+}
+
+/* Pulso del spotlight del hero */
+@keyframes glowBreath {
+  0%, 100% { opacity: 0.65; }
+  50%       { opacity: 1; }
+}
+.glow-breath {
+  animation: glowBreath 5s ease-in-out infinite;
+}
+
 /* Animación del valor numérico */
 @keyframes countUp {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .count-anim { animation: countUp 0.4s ease forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-breath, .fade-up, .count-anim { animation: none; opacity: 1; }
+}

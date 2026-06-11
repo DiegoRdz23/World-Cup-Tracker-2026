@@ -1,8 +1,7 @@
-// Barra de probabilidad reutilizable
 export default function ProbBar({ pct, color = '#00D463', height = 6, showLabel = false }) {
-  const w = Math.max(0, Math.min(100, Math.round(pct * 100)));
-  const bg = w >= 60 ? '#00D463' : w >= 35 ? '#FFD600' : '#FF3B30';
-  const fill = color !== '#00D463' ? color : bg;
+  const w    = Math.max(0, Math.min(100, Math.round(pct * 100)));
+  const auto = w >= 60 ? '#00D463' : w >= 35 ? '#FFD600' : '#FF3B30';
+  const fill = color !== '#00D463' ? color : auto;
 
   return (
     <div className="flex items-center gap-2">
@@ -12,7 +11,10 @@ export default function ProbBar({ pct, color = '#00D463', height = 6, showLabel 
       >
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${w}%`, backgroundColor: fill }}
+          style={{
+            width: `${w}%`,
+            background: `linear-gradient(to right, ${fill}88, ${fill})`,
+          }}
         />
       </div>
       {showLabel && (

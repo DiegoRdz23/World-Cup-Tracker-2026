@@ -1,5 +1,6 @@
 import { useApp } from '../App';
 import { TEAMS } from '../data/teams';
+import { STATIC_PREDICTIONS } from '../data/static-predictions';
 import ProbBar from '../components/ProbBar';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -41,6 +42,24 @@ function ChampionCard({ code, pChampion, rank }) {
         </div>
         <div className="tag text-xs">campeón</div>
       </div>
+    </div>
+  );
+}
+
+function IaCard({ code, rank }) {
+  const team = TEAMS[code];
+  const pred = STATIC_PREDICTIONS[code];
+  const isMex = code === 'MEX';
+  const pct = Math.round((pred?.pChampion ?? 0) * 100 * 10) / 10;
+
+  return (
+    <div className={`card2 flex items-center gap-3 ${isMex ? 'border-green/30' : ''}`}>
+      <span className="text-muted text-xs w-5 text-center">{rank}</span>
+      <span className="text-xl">{team.flag}</span>
+      <span className={`flex-1 text-sm ${isMex ? 'text-green font-bold' : ''}`}>{team.name}</span>
+      <span className="text-sm font-bold tabular-nums" style={{ color: isMex ? '#00D463' : '#6B84A8' }}>
+        {pct}%
+      </span>
     </div>
   );
 }
@@ -100,6 +119,24 @@ export default function Home() {
               rank={ranked.findIndex(([c]) => c === code) + 1}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Predicciones IA — baseline estático */}
+      <div className="fade-up space-y-3">
+        <div>
+          <div className="tag mb-1">Predicciones IA · Baseline Elo (4-jun-2026)</div>
+          <p className="text-xs text-muted">
+            Snapshot de 10,000 simulaciones antes del torneo. No cambia con los resultados reales — úsalo como referencia.
+          </p>
+        </div>
+        <div className="space-y-1">
+          {Object.entries(STATIC_PREDICTIONS)
+            .sort((a, b) => b[1].pChampion - a[1].pChampion)
+            .slice(0, 10)
+            .map(([code], i) => (
+              <IaCard key={code} code={code} rank={i + 1} />
+            ))}
         </div>
       </div>
 

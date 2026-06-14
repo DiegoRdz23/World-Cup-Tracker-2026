@@ -57,8 +57,22 @@ export function getMatchProbs(homeCode, awayCode) {
   return { win, draw, lose, lH, lA };
 }
 
+// Calcula puntos Fair Play de un equipo para una lista de IDs de partido
+// Amarilla: -1, Roja: -3. Menor puntaje = peor Fair Play.
+export function fairPlayPoints(teamCode, matchIds, discipline) {
+  let pts = 0;
+  for (const id of matchIds) {
+    const d = discipline[`${teamCode}_${id}`];
+    if (d) {
+      pts -= (d.yellow ?? 0) * 1;
+      pts -= (d.red    ?? 0) * 3;
+    }
+  }
+  return pts;
+}
+
 // ─── Standings actuales (solo partidos ya jugados) ───────────────────────────
-export function getCurrentStandings(group, results) {
+export function getCurrentStandings(group, results, discipline = {}) {
   const teams    = GROUPS[group];
   const fixtures = FIXTURES_BY_GROUP[group];
 
@@ -72,13 +86,24 @@ export function getCurrentStandings(group, results) {
     const { homeScore: hg, awayScore: ag } = r;
     st[m.home].gf += hg; st[m.home].ga += ag; st[m.home].gd += hg - ag; st[m.home].pj++;
     st[m.away].gf += ag; st[m.away].ga += hg; st[m.away].gd += ag - hg; st[m.away].pj++;
-    if (hg > ag)  { st[m.home].pts += 3; st[m.home].w++; st[m.away].l++; }
-    else if (hg === ag) { st[m.home].pts++; st[m.home].d++; st[m.away].pts++; st[m.away].d++; }
-    else          { st[m.away].pts += 3; st[m.away].w++; st[m.home].l++; }
+    if (hg > ag)       { st[m.home].pts += 3; st[m.home].w++; st[m.away].l++; }
+    else if (hg === ag){ st[m.home].pts++; st[m.home].d++; st[m.away].pts++; st[m.away].d++; }
+    else               { st[m.away].pts += 3; st[m.away].w++; st[m.home].l++; }
   }
 
+  const matchIds = fixtures.map(f => f.id);
+
   return Object.values(st)
-    .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.code.localeCompare(b.code));
+    .sort((a, b) => {
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if (b.gd  !== a.gd)  return b.gd  - a.gd;
+      if (b.gf  !== a.gf)  return b.gf  - a.gf;
+      // 5° criterio: Fair Play (mayor puntaje = mejor, es decir menos negativo)
+      const fpA = fairPlayPoints(a.code, matchIds, discipline);
+      const fpB = fairPlayPoints(b.code, matchIds, discipline);
+      if (fpB !== fpA) return fpB - fpA;
+      return a.code.localeCompare(b.code);
+    });
 }
 
 // ─── Simulación de grupo (una iteración) ─────────────────────────────────────

@@ -5,8 +5,8 @@ import { getCurrentStandings } from '../model/simulation';
 import ProbBar from '../components/ProbBar';
 
 function GroupTable({ groupKey }) {
-  const { results, predictions } = useApp();
-  const standings = getCurrentStandings(groupKey, results);
+  const { results, discipline, predictions } = useApp();
+  const standings = getCurrentStandings(groupKey, results, discipline);
 
   return (
     <div className="card space-y-1">

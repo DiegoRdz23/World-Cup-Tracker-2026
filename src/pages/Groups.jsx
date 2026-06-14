@@ -83,6 +83,101 @@ function TercerosTab() {
   );
 }
 
+function EscenariosTab() {
+  const { results: realResults, discipline } = useApp();
+  const [selectedGroup, setSelectedGroup] = useState('A');
+  const [hypoScores, setHypoScores] = useState({});
+
+  const fixtures = useMemo(() => {
+    return (FIXTURES_BY_GROUP[selectedGroup] ?? []).filter(f => f.matchday === 3);
+  }, [selectedGroup]);
+
+  const hypoResults = useMemo(() => {
+    const merged = { ...realResults };
+    for (const f of fixtures) {
+      const s = hypoScores[f.id];
+      if (s && s.h !== '' && s.a !== '') {
+        const h = parseInt(s.h), a = parseInt(s.a);
+        if (!isNaN(h) && !isNaN(a)) {
+          merged[f.id] = { homeScore: h, awayScore: a, played: true };
+        }
+      }
+    }
+    return merged;
+  }, [realResults, hypoScores, fixtures]);
+
+  const standings = getCurrentStandings(selectedGroup, hypoResults, discipline);
+
+  function setScore(matchId, side, val) {
+    setHypoScores(prev => ({
+      ...prev,
+      [matchId]: { ...prev[matchId], [side]: val },
+    }));
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted">
+        Simula marcadores hipotéticos de la jornada 3 y ve cómo quedaría el grupo.
+        Las jornadas 1 y 2 ya capturadas se respetan.
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {Object.keys(GROUPS).map(g => (
+          <button key={g} onClick={() => { setSelectedGroup(g); setHypoScores({}); }}
+            className={`px-3 py-1 rounded text-sm font-mono transition-colors ${selectedGroup === g ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+            {g === 'A' ? '🇲🇽 A' : `Grupo ${g}`}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <div className="tag">Jornada 3 — hipotético</div>
+        {fixtures.map(f => {
+          const home = TEAMS[f.home];
+          const away = TEAMS[f.away];
+          const s = hypoScores[f.id] ?? {};
+          return (
+            <div key={f.id} className="card2 flex items-center gap-2">
+              <span className="text-base">{home.flag}</span>
+              <span className="text-sm flex-1 truncate">{home.name}</span>
+              <input className="input-field" type="number" min="0" max="20"
+                value={s.h ?? ''} onChange={e => setScore(f.id, 'h', e.target.value)} placeholder="–" />
+              <span className="text-muted text-xs">–</span>
+              <input className="input-field" type="number" min="0" max="20"
+                value={s.a ?? ''} onChange={e => setScore(f.id, 'a', e.target.value)} placeholder="–" />
+              <span className="text-sm flex-1 truncate text-right">{away.name}</span>
+              <span className="text-base">{away.flag}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="card space-y-1">
+        <div className="tag mb-2">Tabla proyectada</div>
+        {standings.map((s, i) => {
+          const team  = TEAMS[s.code];
+          const isMex = s.code === 'MEX';
+          return (
+            <Fragment key={s.code}>
+              {i === 2 && <div className="border-t border-dashed border-border/60 my-1" />}
+              <div className={`flex items-center gap-2 py-1 px-2 rounded text-sm ${isMex ? 'bg-green/10 border border-green/20' : i < 2 ? '' : 'opacity-55'}`}>
+                <span className="text-muted text-xs w-4">{i + 1}</span>
+                <span>{team.flag}</span>
+                <span className={`flex-1 ${isMex ? 'text-green font-bold' : ''}`}>{team.name}</span>
+                <span className="tabular-nums text-muted text-xs">{s.pj}j</span>
+                <span className="font-bold tabular-nums w-5 text-right">{s.pts}</span>
+                <span className="text-muted text-xs tabular-nums">{s.gd > 0 ? '+' : ''}{s.gd}</span>
+                {i < 2 && <span className="text-xs text-green">✓</span>}
+              </div>
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Groups() {
   const [activeTab, setActiveTab] = useState('tablas');
 
@@ -117,11 +212,7 @@ export default function Groups() {
 
       {activeTab === 'terceros' && <TercerosTab />}
 
-      {activeTab === 'escenarios' && (
-        <div className="card text-muted text-sm text-center py-8">
-          Escenarios — se implementa en Task 16.
-        </div>
-      )}
+      {activeTab === 'escenarios' && <EscenariosTab />}
     </div>
   );
 }

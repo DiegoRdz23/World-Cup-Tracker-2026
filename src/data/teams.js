@@ -73,18 +73,20 @@ export const TEAMS = {
   PAN: { code: 'PAN', name: 'Panamá',          flag: '🇵🇦', rating: 1472, group: 'L' },
 };
 
+// Orden según calendario oficial FIFA 2026: [T1,T2] juegan J1, [T3,T4] juegan J1
+// MD1: T1vT2, T3vT4 · MD2: T1vT3, T2vT4 · MD3: T1vT4, T2vT3
 export const GROUPS = {
-  A: ['MEX', 'KOR', 'CZE', 'RSA'],
-  B: ['SUI', 'QAT', 'CAN', 'BIH'],
-  C: ['BRA', 'MAR', 'SCO', 'HAI'],
-  D: ['USA', 'TUR', 'AUS', 'PAR'],
-  E: ['GER', 'ECU', 'CIV', 'CUR'],
+  A: ['MEX', 'RSA', 'KOR', 'CZE'],
+  B: ['CAN', 'BIH', 'QAT', 'SUI'],
+  C: ['BRA', 'MAR', 'HAI', 'SCO'],
+  D: ['USA', 'PAR', 'AUS', 'TUR'],
+  E: ['GER', 'CUR', 'CIV', 'ECU'],
   F: ['NED', 'JPN', 'SWE', 'TUN'],
-  G: ['BEL', 'IRN', 'EGY', 'NZL'],
-  H: ['ESP', 'URU', 'KSA', 'CPV'],
-  I: ['FRA', 'SEN', 'NOR', 'IRQ'],
-  J: ['ARG', 'AUT', 'ALG', 'JOR'],
-  K: ['POR', 'COL', 'COD', 'UZB'],
+  G: ['BEL', 'EGY', 'IRN', 'NZL'],
+  H: ['ESP', 'CPV', 'KSA', 'URU'],
+  I: ['FRA', 'SEN', 'IRQ', 'NOR'],
+  J: ['ARG', 'ALG', 'AUT', 'JOR'],
+  K: ['POR', 'COD', 'UZB', 'COL'],
   L: ['ENG', 'CRO', 'GHA', 'PAN'],
 };
 

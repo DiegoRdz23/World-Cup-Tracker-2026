@@ -74,11 +74,11 @@ function DisciplineTeamRow({ team, code, matchId, initialD, onSave, savedKey }) 
       <span className="flex-1 text-sm">{team.name}</span>
       <div className="flex items-center gap-1.5">
         <span className="text-xs">🟡</span>
-        <input className="input-field w-10" type="number" min="0" max="20" value={y} onChange={e => setY(e.target.value)} />
+        <input className="input-field w-14" type="number" min="0" max="20" value={y} onChange={e => setY(e.target.value)} />
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-xs">🔴</span>
-        <input className="input-field w-10" type="number" min="0" max="20" value={r} onChange={e => setR(e.target.value)} />
+        <input className="input-field w-14" type="number" min="0" max="20" value={r} onChange={e => setR(e.target.value)} />
       </div>
       <button
         onClick={() => onSave(code, matchId, parseInt(y) || 0, parseInt(r) || 0)}
@@ -93,16 +93,23 @@ function DisciplinaTab({ discipline }) {
   const [activeGroup, setActiveGroup] = useState('A');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(null);
+  const [error, setError]   = useState(null);
 
   const fixtures = FIXTURES_BY_GROUP[activeGroup] ?? [];
 
   async function saveDiscipline(teamCode, matchId, yellow, red) {
     const key = `${teamCode}_${matchId}`;
     setSaving(true);
-    await set(ref(db, `discipline/${key}`), { yellow, red });
-    setSaving(false);
-    setSaved(key);
-    setTimeout(() => setSaved(null), 2000);
+    setError(null);
+    try {
+      await set(ref(db, `discipline/${key}`), { yellow, red });
+      setSaved(key);
+      setTimeout(() => setSaved(null), 2000);
+    } catch (e) {
+      setError('Error al guardar. Verifica tu conexión.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -115,6 +122,7 @@ function DisciplinaTab({ discipline }) {
           </button>
         ))}
       </div>
+      {error && <p className="text-xs text-red text-center">{error}</p>}
       <div className="space-y-2">
         <div className="tag">Grupo {activeGroup}</div>
         {fixtures.map(f => {

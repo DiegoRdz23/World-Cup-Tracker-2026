@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { fairPlayPoints, getRankedThirds } from './simulation';
+import { fairPlayPoints, getRankedThirds, resolveKOSlot } from './simulation';
 
 describe('fairPlayPoints', () => {
   test('retorna 0 sin tarjetas', () => {
@@ -59,5 +59,41 @@ describe('getRankedThirds', () => {
     const standings = makeStandings(thirds);
     const result = getRankedThirds(standings);
     expect(result[0].code).toBe('BEST');
+  });
+});
+
+import { resolveKOSlot } from './simulation';
+
+describe('resolveKOSlot', () => {
+  const standings = {
+    A: [{ code: 'MEX', pts: 9 }, { code: 'KOR', pts: 6 }, { code: 'CZE', pts: 3 }, { code: 'RSA', pts: 0 }],
+    B: [{ code: 'SUI', pts: 9 }, { code: 'CAN', pts: 6 }, { code: 'BIH', pts: 3 }, { code: 'QAT', pts: 0 }],
+  };
+
+  test('resuelve código de posición 1A', () => {
+    const result = resolveKOSlot('1A', standings, {});
+    expect(result?.code).toBe('MEX');
+  });
+
+  test('resuelve código de posición 2B', () => {
+    const result = resolveKOSlot('2B', standings, {});
+    expect(result?.code).toBe('CAN');
+  });
+
+  test('retorna null si el grupo no tiene standings suficientes', () => {
+    const result = resolveKOSlot('3C', standings, {});
+    expect(result).toBeNull();
+  });
+
+  test('retorna null si el partido KO no está jugado', () => {
+    const result = resolveKOSlot('W73', standings, {});
+    expect(result).toBeNull();
+  });
+
+  test('resuelve ganador de partido KO jugado', () => {
+    // Partido 73: 2A (KOR) vs 2B (CAN) → KOR gana 2-1
+    const koResults = { '73': { homeScore: 2, awayScore: 1, played: true } };
+    const result = resolveKOSlot('W73', standings, koResults);
+    expect(result?.code).toBe('KOR');
   });
 });

@@ -61,6 +61,7 @@ export default function App() {
   const [loading,     setLoading]     = useState(true);
   const [user,        setUser]        = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [discipline,  setDiscipline]  = useState({});
 
   // Escuchar Firebase en tiempo real
   useEffect(() => {
@@ -70,6 +71,15 @@ export default function App() {
       setLoading(false);
     }, () => {
       setLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  // Escuchar tarjetas de disciplina en tiempo real
+  useEffect(() => {
+    const r = ref(db, 'discipline');
+    const unsub = onValue(r, snap => {
+      setDiscipline(snap.val() ?? {});
     });
     return unsub;
   }, []);
@@ -89,7 +99,7 @@ export default function App() {
   }, [results]);
 
   return (
-    <AppCtx.Provider value={{ results, predictions, loading, user, authLoading }}>
+    <AppCtx.Provider value={{ results, discipline, predictions, loading, user, authLoading }}>
       <div className="min-h-screen bg-bg text-white">
         <Nav />
         <main className="max-w-3xl mx-auto px-4 py-6">

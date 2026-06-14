@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ref, set } from 'firebase/database';
 import { signOut } from 'firebase/auth';
 import { db, auth } from '../firebase';
 import { useApp } from '../App';
 import { TEAMS, GROUPS } from '../data/teams';
 import { FIXTURES_BY_GROUP } from '../data/fixtures';
+import { KO_FIXTURES } from '../data/ko-fixtures';
+import { getCurrentStandings, resolveKOSlot } from '../model/simulation';
 
 function MatchRow({ fixture, existingResult, onSave }) {
   const home = TEAMS[fixture.home];
@@ -113,7 +115,6 @@ function DisciplinaTab({ discipline }) {
           </button>
         ))}
       </div>
-
       <div className="space-y-2">
         <div className="tag">Grupo {activeGroup}</div>
         {fixtures.map(f => {
@@ -121,7 +122,6 @@ function DisciplinaTab({ discipline }) {
           const away = TEAMS[f.away];
           const dHome = discipline[`${f.home}_${f.id}`] ?? { yellow: 0, red: 0 };
           const dAway = discipline[`${f.away}_${f.id}`] ?? { yellow: 0, red: 0 };
-
           return (
             <div key={f.id} className="card2 space-y-3">
               <div className="tag text-xs">Partido {f.id} · {f.date} · J{f.matchday}</div>
@@ -138,44 +138,109 @@ function DisciplinaTab({ discipline }) {
   );
 }
 
-export default function Admin() {
-  const { results, discipline, user } = useApp();
-  const [activeTab,   setActiveTab]   = useState('resultados');
+function KOMatchRow({ fixture, existingResult, allGroupStandings, koResults, onSave }) {
+  const home = resolveKOSlot(fixture.home, allGroupStandings, koResults);
+  const away = resolveKOSlot(fixture.away, allGroupStandings, koResults);
+  const played = existingResult?.played;
+
+  const [hs, setHs] = useState(played ? String(existingResult.homeScore) : '');
+  const [as_, setAs] = useState(played ? String(existingResult.awayScore) : '');
+  const [saving, setSaving] = useState(false);
+  const [saved,  setSaved]  = useState(false);
+
+  async function handleSave() {
+    const h = parseInt(hs), a = parseInt(as_);
+    if (isNaN(h) || isNaN(a) || h < 0 || a < 0 || h === a) return;
+    setSaving(true);
+    await onSave(fixture.id, h, a);
+    setSaving(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function handleClear() {
+    setSaving(true);
+    await onSave(fixture.id, null, null, false);
+    setHs(''); setAs('');
+    setSaving(false);
+  }
+
+  if (!home || !away) return null;
+
+  return (
+    <div className={`card2 space-y-2 ${played ? 'border-green/25' : ''}`}>
+      <div className="tag text-xs">P{fixture.id} · {fixture.date} · {fixture.time}</div>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-1">
+          <span>{home.flag}</span>
+          <span className="text-sm font-bold truncate">{home.name}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <input className="input-field" type="number" min="0" max="20" value={hs} onChange={e => setHs(e.target.value)} placeholder="–" />
+          <span className="text-muted">–</span>
+          <input className="input-field" type="number" min="0" max="20" value={as_} onChange={e => setAs(e.target.value)} placeholder="–" />
+        </div>
+        <div className="flex items-center gap-1.5 flex-1 justify-end">
+          <span className="text-sm font-bold truncate text-right">{away.name}</span>
+          <span>{away.flag}</span>
+        </div>
+      </div>
+      <div className="text-xs text-muted text-center">{fixture.stadium} · {fixture.city}</div>
+      <div className="flex gap-2 justify-end">
+        {played && <button onClick={handleClear} className="text-xs text-muted hover:text-red px-2 py-1" disabled={saving}>Borrar</button>}
+        <button onClick={handleSave} disabled={saving || hs === '' || as_ === '' || parseInt(hs) === parseInt(as_)}
+          className={`text-xs font-bold px-3 py-1 rounded transition-all ${saved ? 'bg-green/20 text-green' : 'bg-green text-bg hover:opacity-90 disabled:opacity-40'}`}>
+          {saved ? '✓ Guardado' : saving ? '…' : 'Guardar'}
+        </button>
+      </div>
+      {hs !== '' && as_ !== '' && parseInt(hs) === parseInt(as_) && (
+        <p className="text-xs text-red text-center">En KO no puede haber empate. Ingresa el resultado definitivo.</p>
+      )}
+    </div>
+  );
+}
+
+const KO_ROUNDS = [
+  { key: 'R32', label: '16avos' },
+  { key: 'R16', label: 'Octavos' },
+  { key: 'QF',  label: 'Cuartos' },
+  { key: 'SF',  label: 'Semifinal' },
+  { key: 'F',   label: 'Final' },
+  { key: '3rd', label: '3er lugar' },
+];
+
+function ResultadosTab({ results, discipline, koResults, saveResult, saveKOResult }) {
+  const [phase, setPhase]       = useState('grupos');
   const [activeGroup, setActiveGroup] = useState('A');
 
-  async function saveResult(matchId, homeScore, awayScore, played = true) {
-    const r = ref(db, `results/${matchId}`);
-    await set(r, played ? { homeScore, awayScore, played: true } : null);
-  }
+  const allGroupStandings = useMemo(() => {
+    const s = {};
+    for (const g of Object.keys(GROUPS)) {
+      s[g] = getCurrentStandings(g, results, discipline);
+    }
+    return s;
+  }, [results, discipline]);
 
   const fixtures = FIXTURES_BY_GROUP[activeGroup] ?? [];
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="tag mb-1">Ingreso de resultados</div>
-          <h1 className="text-xl font-bold">Admin</h1>
-        </div>
-        <button onClick={() => signOut(auth)} className="text-xs text-muted hover:text-white transition-colors px-2 py-1 mt-1">
-          Cerrar sesión
-        </button>
-      </div>
+    <div className="space-y-4">
+      <p className="text-xs text-muted">Las predicciones se recalculan automáticamente.</p>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
-        {['resultados', 'disciplina'].map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'text-white font-bold border-green' : 'text-muted border-transparent hover:text-white'}`}>
-            {tab === 'resultados' ? 'Resultados' : 'Disciplina'}
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => setPhase('grupos')}
+          className={`px-3 py-1 rounded text-sm transition-colors ${phase === 'grupos' ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+          Grupos
+        </button>
+        {KO_ROUNDS.map(r => (
+          <button key={r.key} onClick={() => setPhase(r.key)}
+            className={`px-3 py-1 rounded text-sm transition-colors ${phase === r.key ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+            {r.label}
           </button>
         ))}
       </div>
 
-      {/* Tab: Resultados */}
-      {activeTab === 'resultados' && (
-        <div className="space-y-4">
-          <p className="text-xs text-muted">Las predicciones se recalculan automáticamente para todos los usuarios.</p>
+      {phase === 'grupos' && (
+        <>
           <div className="flex flex-wrap gap-2">
             {Object.keys(GROUPS).map(g => (
               <button key={g} onClick={() => setActiveGroup(g)}
@@ -201,10 +266,73 @@ export default function Admin() {
               );
             })}
           </div>
-        </div>
+        </>
       )}
 
-      {/* Tab: Disciplina */}
+      {phase !== 'grupos' && (
+        <div className="space-y-2">
+          <div className="tag">{KO_ROUNDS.find(r => r.key === phase)?.label}</div>
+          {KO_FIXTURES.filter(f => f.round === phase).map(f => (
+            <KOMatchRow
+              key={f.id}
+              fixture={f}
+              existingResult={koResults[String(f.id)]}
+              allGroupStandings={allGroupStandings}
+              koResults={koResults}
+              onSave={saveKOResult}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Admin() {
+  const { results, discipline, koResults, user } = useApp();
+  const [activeTab, setActiveTab] = useState('resultados');
+
+  async function saveResult(matchId, homeScore, awayScore, played = true) {
+    const r = ref(db, `results/${matchId}`);
+    await set(r, played ? { homeScore, awayScore, played: true } : null);
+  }
+
+  async function saveKOResult(matchId, homeScore, awayScore, played = true) {
+    const r = ref(db, `ko_results/${matchId}`);
+    await set(r, played ? { homeScore, awayScore, played: true } : null);
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="tag mb-1">Ingreso de resultados</div>
+          <h1 className="text-xl font-bold">Admin</h1>
+        </div>
+        <button onClick={() => signOut(auth)} className="text-xs text-muted hover:text-white transition-colors px-2 py-1 mt-1">
+          Cerrar sesión
+        </button>
+      </div>
+
+      <div className="flex gap-1 border-b border-border">
+        {['resultados', 'disciplina'].map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'text-white font-bold border-green' : 'text-muted border-transparent hover:text-white'}`}>
+            {tab === 'resultados' ? 'Resultados' : 'Disciplina'}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'resultados' && (
+        <ResultadosTab
+          results={results}
+          discipline={discipline}
+          koResults={koResults}
+          saveResult={saveResult}
+          saveKOResult={saveKOResult}
+        />
+      )}
+
       {activeTab === 'disciplina' && <DisciplinaTab discipline={discipline} />}
     </div>
   );

@@ -62,6 +62,7 @@ export default function App() {
   const [user,        setUser]        = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [discipline,  setDiscipline]  = useState({});
+  const [koResults,   setKoResults]   = useState({});
 
   // Escuchar Firebase en tiempo real
   useEffect(() => {
@@ -84,6 +85,15 @@ export default function App() {
     return unsub;
   }, []);
 
+  // Escuchar resultados de fase eliminatoria en tiempo real
+  useEffect(() => {
+    const r = ref(db, 'ko_results');
+    const unsub = onValue(r, snap => {
+      setKoResults(snap.val() ?? {});
+    });
+    return unsub;
+  }, []);
+
   // Escuchar estado de autenticación
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, currentUser => {
@@ -99,7 +109,7 @@ export default function App() {
   }, [results]);
 
   return (
-    <AppCtx.Provider value={{ results, discipline, predictions, loading, user, authLoading }}>
+    <AppCtx.Provider value={{ results, discipline, koResults, predictions, loading, user, authLoading }}>
       <div className="min-h-screen bg-bg text-white">
         <Nav />
         <main className="max-w-3xl mx-auto px-4 py-6">

@@ -213,3 +213,27 @@ export function runMonteCarlo(results, iterations = 8000) {
   }
   return probs;
 }
+
+// Toma el 3° de cada grupo y los ordena según reglas FIFA de mejores terceros.
+// Retorna array de 12 con propiedad `advancing: true` para los 8 mejores.
+export function getRankedThirds(allGroupStandings, discipline = {}) {
+  const thirds = Object.entries(allGroupStandings)
+    .map(([group, standings]) => {
+      const third = standings[2];
+      if (!third) return null;
+      const fixtures = FIXTURES_BY_GROUP[group] ?? [];
+      const matchIds = fixtures.map(f => f.id);
+      const fp = fairPlayPoints(third.code, matchIds, discipline);
+      return { ...third, group, fp };
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if (b.gd  !== a.gd)  return b.gd  - a.gd;
+      if (b.gf  !== a.gf)  return b.gf  - a.gf;
+      if (b.fp  !== a.fp)  return b.fp  - a.fp;
+      return a.code.localeCompare(b.code);
+    });
+
+  return thirds.map((t, i) => ({ ...t, advancing: i < 8 }));
+}

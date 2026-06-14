@@ -9,6 +9,7 @@ import Mexico  from './pages/Mexico';
 import Groups  from './pages/Groups';
 import Admin   from './pages/Admin';
 import Login   from './pages/Login';
+import Squads from './pages/Squads';
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 export const AppCtx = createContext(null);
@@ -28,6 +29,7 @@ function Nav() {
     { to: '/',        label: 'Campeón' },
     { to: '/mexico',  label: '🇲🇽 México' },
     { to: '/grupos',  label: 'Grupos' },
+    { to: '/squads',  label: 'Squads' },
     { to: '/admin',   label: 'Resultados' },
   ];
 
@@ -99,7 +101,8 @@ export default function App() {
             <Routes>
               <Route path="/"       element={<Home />} />
               <Route path="/mexico" element={<Mexico />} />
-              <Route path="/grupos" element={<Groups />} />
+              <Route path="/grupos"  element={<Groups />} />
+              <Route path="/squads" element={<Squads />} />
               <Route path="/login"  element={<Login />} />
               <Route path="/admin"  element={
                 <ProtectedRoute><Admin /></ProtectedRoute>

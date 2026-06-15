@@ -40,7 +40,7 @@ export default function Squads() {
 
       {/* Buscador */}
       <input
-        className="w-full bg-card2 border border-border rounded-lg px-3 py-2 text-sm text-white placeholder-muted focus:outline-none focus:border-green/50"
+        className="w-full bg-card2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder-muted focus:outline-none focus:border-green/50"
         placeholder="Buscar equipo o jugador…"
         value={search}
         onChange={e => setSearch(e.target.value)}
@@ -80,8 +80,8 @@ export default function Squads() {
                       selectedTeam === code
                         ? code === 'MEX'
                           ? 'bg-green/20 border-green text-green font-bold'
-                          : 'bg-card2 border-white/40 text-white font-bold'
-                        : 'bg-card2 border-border text-muted hover:text-white'
+                          : 'bg-blue/10 border-blue/40 text-blue font-bold'
+                        : 'bg-card2 border-border text-muted hover:text-text'
                     }`}
                   >
                     <span>{TEAMS[code].flag}</span>

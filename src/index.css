@@ -6,20 +6,21 @@
   * { box-sizing: border-box; }
 
   body {
-    background-color: #05091A;
-    color: #E2ECF9;
-    font-family: 'JetBrains Mono', monospace;
+    background-color: #F7F8F0;
+    color: #1C2E42;
+    font-family: 'IBM Plex Mono', monospace;
     -webkit-font-smoothing: antialiased;
   }
 
   ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: #05091A; }
-  ::-webkit-scrollbar-thumb { background: #1C2A45; border-radius: 2px; }
+  ::-webkit-scrollbar-track { background: #F7F8F0; }
+  ::-webkit-scrollbar-thumb { background: #BBD5DA; border-radius: 2px; }
 }
 
 @layer components {
   .prob-bar {
-    @apply h-1.5 rounded-full bg-border overflow-hidden;
+    @apply h-1.5 rounded-full overflow-hidden;
+    background: #D4E8EA;
   }
   .prob-fill {
     @apply h-full rounded-full transition-all duration-700 ease-out;
@@ -34,14 +35,41 @@
     @apply text-xs font-mono text-muted uppercase tracking-widest;
   }
   .btn-primary {
-    @apply bg-green text-bg font-bold py-2 px-5 rounded-lg hover:opacity-90 transition-opacity;
+    @apply bg-blue text-white font-bold py-2 px-5 rounded-lg hover:opacity-90 transition-opacity;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.08em;
   }
   .btn-ghost {
-    @apply border border-border text-muted font-mono py-2 px-5 rounded-lg hover:border-green hover:text-green transition-colors;
+    @apply border border-border text-muted font-mono py-2 px-5 rounded-lg hover:border-blue hover:text-blue transition-colors;
   }
   .input-field {
-    @apply bg-card border border-border rounded-lg px-3 py-2 text-center text-lg font-bold w-14 focus:outline-none focus:border-green transition-colors;
+    @apply bg-white border border-border rounded-lg px-3 py-2 text-center text-lg font-bold w-14 focus:outline-none focus:border-blue transition-colors text-text;
   }
+
+  /* Ticker */
+  .ticker-wrap {
+    overflow: hidden;
+    border-top: 1px solid #BBD5DA;
+    border-bottom: 1px solid #BBD5DA;
+    background: #DFF1F1;
+    padding: 10px 0;
+  }
+  .ticker-inner {
+    display: flex;
+    gap: 64px;
+    white-space: nowrap;
+    animation: ticker 28s linear infinite;
+  }
+  .ticker-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: #4A6E8A;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ticker-item b { color: #3674B5; font-weight: 700; }
 }
 
 /* Entrada suave de tarjetas */
@@ -53,13 +81,25 @@
   animation: fadeUp 0.45s ease-out forwards;
 }
 
+/* Ticker */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 /* Pulso del spotlight del hero */
 @keyframes glowBreath {
-  0%, 100% { opacity: 0.65; }
-  50%       { opacity: 1; }
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.9; }
 }
 .glow-breath {
   animation: glowBreath 5s ease-in-out infinite;
+}
+
+/* Ghost text */
+@keyframes ghostIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Animación del valor numérico */
@@ -69,6 +109,33 @@
 }
 .count-anim { animation: countUp 0.4s ease forwards; }
 
+/* Slide desde la izquierda — tarjetas ranking */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-in { animation: slideInLeft 0.35s ease-out both; }
+
+/* Barra crece desde la izquierda */
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.bar-grow {
+  transform-origin: left;
+  animation: barGrow 0.8s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Pulso del dot EN VIVO */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.25; transform: scale(0.6); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .glow-breath, .fade-up, .count-anim { animation: none; opacity: 1; }
+  .glow-breath, .fade-up, .count-anim, .slide-in, .bar-grow, .ticker-inner {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

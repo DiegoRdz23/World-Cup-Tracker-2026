@@ -1,13 +1,14 @@
-export default function ProbBar({ pct, color = '#00D463', height = 6, showLabel = false }) {
+export default function ProbBar({ pct, color = '#0A6E35', height = 6, showLabel = false }) {
   const w    = Math.max(0, Math.min(100, Math.round(pct * 100)));
-  const auto = w >= 60 ? '#00D463' : w >= 35 ? '#FFD600' : '#FF3B30';
-  const fill = color !== '#00D463' ? color : auto;
+  // Auto: verde (alto) → azul (medio) → rojo (bajo)
+  const auto = w >= 60 ? '#0A6E35' : w >= 35 ? '#3674B5' : '#E05050';
+  const fill = color !== '#0A6E35' ? color : auto;
 
   return (
     <div className="flex items-center gap-2">
       <div
         className="rounded-full overflow-hidden flex-1"
-        style={{ height, backgroundColor: '#1C2A45' }}
+        style={{ height, backgroundColor: '#D4E8EA' }}
       >
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"

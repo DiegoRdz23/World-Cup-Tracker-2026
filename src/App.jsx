@@ -23,31 +23,93 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
 
+// ─── Layout wrapper — cambia max-width según la ruta ─────────────────────────
+function PageLayout({ children, loading }) {
+  const { pathname } = useLocation();
+  const wide = pathname === '/grupos';
+  return (
+    <main className={`mx-auto px-4 py-6 transition-all ${wide ? 'max-w-5xl' : 'max-w-3xl'}`}>
+      {loading ? (
+        <div className="flex items-center justify-center h-48 text-muted text-sm">
+          Cargando…
+        </div>
+      ) : children}
+    </main>
+  );
+}
+
+// ─── Ticker de predicciones en vivo ──────────────────────────────────────────
+function Ticker() {
+  const { predictions, loading } = useApp();
+
+  const items = loading
+    ? [{ label: 'Cargando predicciones…', code: null }]
+    : Object.entries(predictions)
+        .sort((a, b) => b[1].pChampion - a[1].pChampion)
+        .slice(0, 8)
+        .map(([code, p]) => ({
+          code,
+          label: `${Math.round(p.pChampion * 1000) / 10}% campeón`,
+        }));
+
+  // Duplicar para loop continuo
+  const all = [...items, ...items];
+
+  return (
+    <div className="ticker-wrap">
+      <div className="ticker-inner">
+        {all.map((item, i) => (
+          <span key={i} className="ticker-item">
+            {item.code ? <b>{item.code}</b> : null}
+            {item.code ? ' ' : null}
+            {item.label}
+            {i < all.length - 1 ? <span style={{ margin: '0 16px', opacity: 0.3 }}>·</span> : null}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Navigation ──────────────────────────────────────────────────────────────
 function Nav() {
   const { pathname } = useLocation();
   const links = [
-    { to: '/',        label: 'Campeón' },
-    { to: '/mexico',  label: '🇲🇽 México' },
-    { to: '/grupos',  label: 'Grupos' },
-    { to: '/squads',        label: 'Squads' },
+    { to: '/',             label: 'Campeón' },
+    { to: '/mexico',       label: '🇲🇽 México' },
+    { to: '/grupos',       label: 'Grupos' },
+    { to: '/squads',       label: 'Squads' },
     { to: '/eliminatoria', label: 'Eliminatoria' },
     { to: '/admin',        label: 'Resultados' },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-border">
+    <nav className="sticky top-0 z-50 bg-card border-b-2 border-border shadow-sm">
       <div className="max-w-3xl mx-auto px-4 flex items-center gap-1 h-12 overflow-x-auto">
-        <span className="text-green font-bold text-sm mr-3 whitespace-nowrap">⚽ MX26</span>
+        {/* Logo + live dot */}
+        <div className="flex items-center gap-2 mr-3 shrink-0">
+          <span
+            className="w-2 h-2 rounded-full bg-red shrink-0"
+            style={{ animation: 'livePulse 1.4s ease-in-out infinite' }}
+          />
+          <span
+            className="font-display font-bold text-sm text-text whitespace-nowrap"
+            style={{ letterSpacing: '0.15em' }}
+          >
+            MX26
+          </span>
+        </div>
+
         {links.map(l => (
           <Link
             key={l.to}
             to={l.to}
-            className={`px-3 py-1 text-sm whitespace-nowrap transition-all border-b-2 ${
+            className={`px-3 py-1 text-xs font-mono whitespace-nowrap transition-all border-b-2 ${
               pathname === l.to
-                ? 'text-white font-bold border-green'
-                : 'text-muted hover:text-white border-transparent'
+                ? 'text-blue font-bold border-blue'
+                : 'text-muted hover:text-text border-transparent'
             }`}
+            style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}
           >
             {l.label}
           </Link>
@@ -112,27 +174,20 @@ export default function App() {
 
   return (
     <AppCtx.Provider value={{ results, discipline, koResults, predictions, loading, user, authLoading }}>
-      <div className="min-h-screen bg-bg text-white">
+      <div className="min-h-screen bg-bg text-text">
         <Nav />
-        <main className="max-w-3xl mx-auto px-4 py-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-48 text-muted text-sm">
-              Cargando…
-            </div>
-          ) : (
-            <Routes>
-              <Route path="/"       element={<Home />} />
-              <Route path="/mexico" element={<Mexico />} />
-              <Route path="/grupos"  element={<Groups />} />
-              <Route path="/squads"       element={<Squads />} />
-              <Route path="/eliminatoria" element={<Eliminatoria />} />
-              <Route path="/login"  element={<Login />} />
-              <Route path="/admin"  element={
-                <ProtectedRoute><Admin /></ProtectedRoute>
-              } />
-            </Routes>
-          )}
-        </main>
+        <Ticker />
+        <PageLayout loading={loading}>
+          <Routes>
+            <Route path="/"             element={<Home />} />
+            <Route path="/mexico"       element={<Mexico />} />
+            <Route path="/grupos"       element={<Groups />} />
+            <Route path="/squads"       element={<Squads />} />
+            <Route path="/eliminatoria" element={<Eliminatoria />} />
+            <Route path="/login"        element={<Login />} />
+            <Route path="/admin"        element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          </Routes>
+        </PageLayout>
       </div>
     </AppCtx.Provider>
   );

@@ -5,12 +5,12 @@ import { KO_FIXTURES } from '../data/ko-fixtures';
 import { getCurrentStandings, resolveKOSlot } from '../model/simulation';
 
 const ROUND_META = {
-  R32: { label: '16avos de final',   color: '#6B84A8' },
-  R16: { label: 'Octavos de final',  color: '#00B4FF' },
-  QF:  { label: 'Cuartos de final',  color: '#FFD600' },
-  SF:  { label: 'Semifinales',       color: '#FF6B35' },
-  F:   { label: 'Final',             color: '#FFD600' },
-  '3rd': { label: 'Tercer lugar',    color: '#C0C0C0' },
+  R32:   { label: '16avos de final',   color: '#4A6E8A' },
+  R16:   { label: 'Octavos de final',  color: '#3674B5' },
+  QF:    { label: 'Cuartos de final',  color: '#A07808' },
+  SF:    { label: 'Semifinales',       color: '#C45020' },
+  F:     { label: 'Final',             color: '#A07808' },
+  '3rd': { label: 'Tercer lugar',      color: '#7A9AA8' },
 };
 
 const ROUND_ORDER = ['R32', 'R16', 'QF', 'SF', 'F', '3rd'];

@@ -30,3 +30,4 @@ Thumbs.db
 
 # Brainstorming session files
 .superpowers/
+.vercel

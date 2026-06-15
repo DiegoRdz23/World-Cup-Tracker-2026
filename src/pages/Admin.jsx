@@ -82,7 +82,7 @@ function DisciplineTeamRow({ team, code, matchId, initialD, onSave, savedKey }) 
       </div>
       <button
         onClick={() => onSave(code, matchId, parseInt(y) || 0, parseInt(r) || 0)}
-        className={`text-xs font-bold px-2 py-1 rounded transition-all ${savedKey === key ? 'bg-green/20 text-green' : 'bg-card border border-border text-muted hover:text-white'}`}>
+        className={`text-xs font-bold px-2 py-1 rounded transition-all ${savedKey === key ? 'bg-green/20 text-green' : 'bg-card border border-border text-muted hover:text-text'}`}>
         {savedKey === key ? '✓' : 'OK'}
       </button>
     </div>
@@ -117,7 +117,7 @@ function DisciplinaTab({ discipline }) {
       <div className="flex flex-wrap gap-2">
         {Object.keys(GROUPS).map(g => (
           <button key={g} onClick={() => setActiveGroup(g)}
-            className={`px-3 py-1 rounded text-sm font-mono transition-colors ${activeGroup === g ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+            className={`px-3 py-1 rounded text-sm font-mono transition-colors ${activeGroup === g ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-text border border-border'}`}>
             {g === 'A' ? '🇲🇽 A' : `Grupo ${g}`}
           </button>
         ))}
@@ -236,12 +236,12 @@ function ResultadosTab({ results, discipline, koResults, saveResult, saveKOResul
 
       <div className="flex flex-wrap gap-2">
         <button onClick={() => setPhase('grupos')}
-          className={`px-3 py-1 rounded text-sm transition-colors ${phase === 'grupos' ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+          className={`px-3 py-1 rounded text-sm transition-colors ${phase === 'grupos' ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-text border border-border'}`}>
           Grupos
         </button>
         {KO_ROUNDS.map(r => (
           <button key={r.key} onClick={() => setPhase(r.key)}
-            className={`px-3 py-1 rounded text-sm transition-colors ${phase === r.key ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+            className={`px-3 py-1 rounded text-sm transition-colors ${phase === r.key ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-text border border-border'}`}>
             {r.label}
           </button>
         ))}
@@ -252,7 +252,7 @@ function ResultadosTab({ results, discipline, koResults, saveResult, saveKOResul
           <div className="flex flex-wrap gap-2">
             {Object.keys(GROUPS).map(g => (
               <button key={g} onClick={() => setActiveGroup(g)}
-                className={`px-3 py-1 rounded text-sm font-mono transition-colors ${activeGroup === g ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-white border border-border'}`}>
+                className={`px-3 py-1 rounded text-sm font-mono transition-colors ${activeGroup === g ? 'bg-green text-bg font-bold' : 'bg-card2 text-muted hover:text-text border border-border'}`}>
                 {g === 'A' ? '🇲🇽 A' : `Grupo ${g}`}
               </button>
             ))}
@@ -317,7 +317,7 @@ export default function Admin() {
           <div className="tag mb-1">Ingreso de resultados</div>
           <h1 className="text-xl font-bold">Admin</h1>
         </div>
-        <button onClick={() => signOut(auth)} className="text-xs text-muted hover:text-white transition-colors px-2 py-1 mt-1">
+        <button onClick={() => signOut(auth)} className="text-xs text-muted hover:text-text transition-colors px-2 py-1 mt-1">
           Cerrar sesión
         </button>
       </div>
@@ -325,7 +325,7 @@ export default function Admin() {
       <div className="flex gap-1 border-b border-border">
         {['resultados', 'disciplina'].map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'text-white font-bold border-green' : 'text-muted border-transparent hover:text-white'}`}>
+            className={`px-4 py-2 text-sm capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'text-blue font-bold border-blue' : 'text-muted border-transparent hover:text-text'}`}>
             {tab === 'resultados' ? 'Resultados' : 'Disciplina'}
           </button>
         ))}

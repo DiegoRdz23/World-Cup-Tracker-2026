@@ -182,21 +182,31 @@ async function sync() {
       continue;
     }
 
-    const fixtureId = `${homeCode}_${awayCode}`;
-    if (!VALID_FIXTURE_IDS.has(fixtureId)) {
+    // Probar ambos órdenes: la API puede invertir local/visitante respecto a nuestros fixtures
+    const fixtureId = VALID_FIXTURE_IDS.has(`${homeCode}_${awayCode}`)
+      ? `${homeCode}_${awayCode}`
+      : VALID_FIXTURE_IDS.has(`${awayCode}_${homeCode}`)
+        ? `${awayCode}_${homeCode}`
+        : null;
+
+    if (!fixtureId) {
       skipped++;
       continue;
     }
 
-    const homeScore = match.score.fullTime.home;
-    const awayScore = match.score.fullTime.away;
+    // Ajustar scores según quién es realmente local en nuestro fixture
+    const isFlipped = fixtureId === `${awayCode}_${homeCode}`;
+    const homeScore = isFlipped ? match.score.fullTime.away : match.score.fullTime.home;
+    const awayScore = isFlipped ? match.score.fullTime.home : match.score.fullTime.away;
 
     await db.ref(`results/${fixtureId}`).set({ homeScore, awayScore, played: true });
     console.log(`✅ ${fixtureId}: ${homeScore}–${awayScore}`);
 
     if (syncCards_flag) {
-      await sleep(7000); // 7s entre requests para no exceder el límite del free tier
-      await syncCards(match.id, homeCode, awayCode, fixtureId);
+      await sleep(7000);
+      const cardHome = isFlipped ? awayCode : homeCode;
+      const cardAway = isFlipped ? homeCode : awayCode;
+      await syncCards(match.id, cardHome, cardAway, fixtureId);
     }
 
     updated++;

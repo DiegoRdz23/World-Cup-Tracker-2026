@@ -28,6 +28,9 @@ Thumbs.db
 # Claude Code
 .claude/
 
+# Firebase Admin (¡nunca subir a git!)
+scripts/serviceAccountKey.json
+
 # Brainstorming session files
 .superpowers/
 .vercel

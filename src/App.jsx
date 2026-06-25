@@ -11,6 +11,7 @@ import Admin   from './pages/Admin';
 import Login   from './pages/Login';
 import Squads from './pages/Squads';
 import Eliminatoria from './pages/Eliminatoria';
+import Partidos     from './pages/Partidos';
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 export const AppCtx = createContext(null);
@@ -78,6 +79,7 @@ function Nav() {
     { to: '/',             label: 'Campeón' },
     { to: '/mexico',       label: '🇲🇽 México' },
     { to: '/grupos',       label: 'Grupos' },
+    { to: '/partidos',     label: 'Partidos' },
     { to: '/squads',       label: 'Squads' },
     { to: '/eliminatoria', label: 'Eliminatoria' },
     { to: '/admin',        label: 'Resultados' },
@@ -182,6 +184,7 @@ export default function App() {
             <Route path="/"             element={<Home />} />
             <Route path="/mexico"       element={<Mexico />} />
             <Route path="/grupos"       element={<Groups />} />
+            <Route path="/partidos"     element={<Partidos />} />
             <Route path="/squads"       element={<Squads />} />
             <Route path="/eliminatoria" element={<Eliminatoria />} />
             <Route path="/login"        element={<Login />} />

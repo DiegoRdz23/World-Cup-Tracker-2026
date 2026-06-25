@@ -239,6 +239,20 @@ export function getRankedThirds(allGroupStandings, discipline = {}) {
   return thirds.map((t, i) => ({ ...t, advancing: i < 8 }));
 }
 
+// ─── Matriz de resultados Poisson (6×6) ──────────────────────────────────────
+export function getScoreMatrix(homeCode, awayCode) {
+  const { lH, lA, win, draw, lose } = getMatchProbs(homeCode, awayCode);
+  const SIZE = 5;
+  const matrix = [];
+  for (let i = 0; i <= SIZE; i++) {
+    matrix[i] = [];
+    for (let j = 0; j <= SIZE; j++) {
+      matrix[i][j] = poissonPMF(i, lH) * poissonPMF(j, lA);
+    }
+  }
+  return { matrix, lH, lA, win, draw, lose };
+}
+
 // Resuelve un slot del bracket KO a un objeto de equipo {code, ...TEAMS[code]}.
 // slotCode: '1A' (1°GrupoA), '2B', '3C', 'W73' (ganador P73), 'L101' (perdedor P101).
 // Retorna null si el slot aún no está resuelto.

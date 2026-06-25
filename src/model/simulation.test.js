@@ -62,7 +62,7 @@ describe('getRankedThirds', () => {
   });
 });
 
-import { resolveKOSlot } from './simulation';
+import { resolveKOSlot, getScoreMatrix } from './simulation';
 
 describe('resolveKOSlot', () => {
   const standings = {
@@ -95,5 +95,41 @@ describe('resolveKOSlot', () => {
     const koResults = { '73': { homeScore: 2, awayScore: 1, played: true } };
     const result = resolveKOSlot('W73', standings, koResults);
     expect(result?.code).toBe('KOR');
+  });
+});
+
+describe('getScoreMatrix', () => {
+  test('devuelve matriz de 6×6', () => {
+    const { matrix } = getScoreMatrix('BRA', 'MEX');
+    expect(matrix).toHaveLength(6);
+    matrix.forEach(row => expect(row).toHaveLength(6));
+  });
+
+  test('todas las celdas son números entre 0 y 1', () => {
+    const { matrix } = getScoreMatrix('BRA', 'MEX');
+    matrix.flat().forEach(p => {
+      expect(p).toBeGreaterThanOrEqual(0);
+      expect(p).toBeLessThanOrEqual(1);
+    });
+  });
+
+  test('la suma de probabilidades es aproximadamente 1', () => {
+    const { matrix } = getScoreMatrix('BRA', 'MEX');
+    const sum = matrix.flat().reduce((a, b) => a + b, 0);
+    expect(sum).toBeGreaterThan(0.9);
+    expect(sum).toBeLessThanOrEqual(1);
+  });
+
+  test('expone lH, lA, win, draw, lose', () => {
+    const result = getScoreMatrix('BRA', 'MEX');
+    expect(result.lH).toBeGreaterThan(0);
+    expect(result.lA).toBeGreaterThan(0);
+    expect(result.win + result.draw + result.lose).toBeCloseTo(1, 1);
+  });
+
+  test('matrix[0][0] es la probabilidad de empate 0-0', () => {
+    const { matrix, lH, lA } = getScoreMatrix('BRA', 'MEX');
+    const expected = Math.exp(-lH) * Math.exp(-lA);
+    expect(matrix[0][0]).toBeCloseTo(expected, 5);
   });
 });

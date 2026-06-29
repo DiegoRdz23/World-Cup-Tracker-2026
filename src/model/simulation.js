@@ -256,8 +256,17 @@ export function getScoreMatrix(homeCode, awayCode) {
 // Resuelve un slot del bracket KO a un objeto de equipo {code, ...TEAMS[code]}.
 // slotCode: '1A' (1°GrupoA), '2B', '3C', 'W73' (ganador P73), 'L101' (perdedor P101).
 // Retorna null si el slot aún no está resuelto.
-// Orden de los 8 slots de terceros en el bracket (por ID de fixture ascendente)
-const THIRD_SLOT_ORDER = ['3C', '3F', '3H', '3E', '3B', '3A', '3G', '3D'];
+// Asignación real FIFA 2026: slot → equipo clasificado como mejor tercero
+const THIRD_SLOT_ASSIGNMENTS = {
+  '3C': 'PAR', // GER vs PAR
+  '3F': 'SWE', // FRA vs SWE
+  '3H': 'ECU', // MEX vs ECU
+  '3E': 'COD', // ENG vs COD
+  '3B': 'BIH', // USA vs BIH
+  '3A': 'SEN', // BEL vs SEN
+  '3G': 'ALG', // SUI vs ALG
+  '3D': 'GHA', // COL vs GHA
+};
 
 export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline = {}) {
   if (!slotCode) return null;
@@ -269,12 +278,8 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline
     const group = posMatch[2];
 
     if (pos === 2) {
-      // Terceros: asignar por ranking de los 8 mejores, en orden de slot del bracket
-      const ranked   = getRankedThirds(allGroupStandings, discipline);
-      const advancing = ranked.filter(t => t.advancing);
-      const slotIndex = THIRD_SLOT_ORDER.indexOf(slotCode);
-      const team = advancing[slotIndex];
-      return team ? { code: team.code, ...TEAMS[team.code] } : null;
+      const code = THIRD_SLOT_ASSIGNMENTS[slotCode];
+      return code ? { code, ...TEAMS[code] } : null;
     }
 
     const st = allGroupStandings[group];

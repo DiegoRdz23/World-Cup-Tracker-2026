@@ -256,6 +256,9 @@ export function getScoreMatrix(homeCode, awayCode) {
 // Resuelve un slot del bracket KO a un objeto de equipo {code, ...TEAMS[code]}.
 // slotCode: '1A' (1°GrupoA), '2B', '3C', 'W73' (ganador P73), 'L101' (perdedor P101).
 // Retorna null si el slot aún no está resuelto.
+// Orden de los 8 slots de terceros en el bracket (por ID de fixture ascendente)
+const THIRD_SLOT_ORDER = ['3C', '3F', '3H', '3E', '3B', '3A', '3G', '3D'];
+
 export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline = {}) {
   if (!slotCode) return null;
 
@@ -264,17 +267,19 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline
   if (posMatch) {
     const pos   = parseInt(posMatch[1]) - 1;
     const group = posMatch[2];
-    const st    = allGroupStandings[group];
-    if (!st || !st[pos]) return null;
-    const code = st[pos].code;
 
-    // Para terceros: verificar que realmente clasificó entre los 8 mejores
     if (pos === 2) {
-      const ranked = getRankedThirds(allGroupStandings, discipline);
-      const entry  = ranked.find(t => t.code === code);
-      if (!entry?.advancing) return null;
+      // Terceros: asignar por ranking de los 8 mejores, en orden de slot del bracket
+      const ranked   = getRankedThirds(allGroupStandings, discipline);
+      const advancing = ranked.filter(t => t.advancing);
+      const slotIndex = THIRD_SLOT_ORDER.indexOf(slotCode);
+      const team = advancing[slotIndex];
+      return team ? { code: team.code, ...TEAMS[team.code] } : null;
     }
 
+    const st = allGroupStandings[group];
+    if (!st || !st[pos]) return null;
+    const code = st[pos].code;
     return code ? { code, ...TEAMS[code] } : null;
   }
 

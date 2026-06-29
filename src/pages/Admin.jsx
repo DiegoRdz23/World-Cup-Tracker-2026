@@ -146,9 +146,9 @@ function DisciplinaTab({ discipline }) {
   );
 }
 
-function KOMatchRow({ fixture, existingResult, allGroupStandings, koResults, onSave }) {
-  const home = resolveKOSlot(fixture.home, allGroupStandings, koResults);
-  const away = resolveKOSlot(fixture.away, allGroupStandings, koResults);
+function KOMatchRow({ fixture, existingResult, allGroupStandings, koResults, discipline, onSave }) {
+  const home = resolveKOSlot(fixture.home, allGroupStandings, koResults, discipline);
+  const away = resolveKOSlot(fixture.away, allGroupStandings, koResults, discipline);
   const played = existingResult?.played;
 
   const [hs, setHs] = useState(played ? String(existingResult.homeScore) : '');
@@ -287,6 +287,7 @@ function ResultadosTab({ results, discipline, koResults, saveResult, saveKOResul
               existingResult={koResults[String(f.id)]}
               allGroupStandings={allGroupStandings}
               koResults={koResults}
+              discipline={discipline}
               onSave={saveKOResult}
             />
           ))}

@@ -256,7 +256,7 @@ export function getScoreMatrix(homeCode, awayCode) {
 // Resuelve un slot del bracket KO a un objeto de equipo {code, ...TEAMS[code]}.
 // slotCode: '1A' (1°GrupoA), '2B', '3C', 'W73' (ganador P73), 'L101' (perdedor P101).
 // Retorna null si el slot aún no está resuelto.
-export function resolveKOSlot(slotCode, allGroupStandings, koResults) {
+export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline = {}) {
   if (!slotCode) return null;
 
   // Posición en grupo: '1A', '2B', '3C'
@@ -267,6 +267,14 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults) {
     const st    = allGroupStandings[group];
     if (!st || !st[pos]) return null;
     const code = st[pos].code;
+
+    // Para terceros: verificar que realmente clasificó entre los 8 mejores
+    if (pos === 2) {
+      const ranked = getRankedThirds(allGroupStandings, discipline);
+      const entry  = ranked.find(t => t.code === code);
+      if (!entry?.advancing) return null;
+    }
+
     return code ? { code, ...TEAMS[code] } : null;
   }
 
@@ -277,8 +285,8 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults) {
     const fixture = KO_FIXTURE_BY_ID[id];
     const result  = koResults[String(id)];
     if (!fixture || !result?.played) return null;
-    const home = resolveKOSlot(fixture.home, allGroupStandings, koResults);
-    const away = resolveKOSlot(fixture.away, allGroupStandings, koResults);
+    const home = resolveKOSlot(fixture.home, allGroupStandings, koResults, discipline);
+    const away = resolveKOSlot(fixture.away, allGroupStandings, koResults, discipline);
     if (!home || !away) return null;
     return result.homeScore > result.awayScore ? home : away;
   }
@@ -290,8 +298,8 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults) {
     const fixture = KO_FIXTURE_BY_ID[id];
     const result  = koResults[String(id)];
     if (!fixture || !result?.played) return null;
-    const home = resolveKOSlot(fixture.home, allGroupStandings, koResults);
-    const away = resolveKOSlot(fixture.away, allGroupStandings, koResults);
+    const home = resolveKOSlot(fixture.home, allGroupStandings, koResults, discipline);
+    const away = resolveKOSlot(fixture.away, allGroupStandings, koResults, discipline);
     if (!home || !away) return null;
     return result.homeScore > result.awayScore ? away : home;
   }

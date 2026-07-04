@@ -113,6 +113,17 @@ function MatchCard({ fixture, result, onClick }) {
   );
 }
 
+// Determina el color del marcador KO según quién ganó (considera penales)
+function koScoreColor(result) {
+  if (!result?.played) return '#1C2E42';
+  if (result.penalties) {
+    return result.homePen > result.awayPen ? '#0A6E35' : '#E05050';
+  }
+  if (result.homeScore > result.awayScore) return '#0A6E35';
+  if (result.homeScore < result.awayScore) return '#E05050';
+  return '#1C2E42';
+}
+
 // ─── Card de partido eliminatorio ─────────────────────────────────────────────
 function KOMatchCard({ fixture, home, away, result, onClick }) {
   const played = result?.played;
@@ -143,7 +154,7 @@ function KOMatchCard({ fixture, home, away, result, onClick }) {
         <div className="text-center shrink-0 w-24">
           {played ? (
             <div>
-              <span className="font-display font-bold tabular-nums text-xl" style={{ color: '#1C2E42' }}>
+              <span className="font-display font-bold tabular-nums text-xl" style={{ color: koScoreColor(result) }}>
                 {result.homeScore} – {result.awayScore}
               </span>
               {result.penalties && (

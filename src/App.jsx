@@ -27,7 +27,7 @@ function ProtectedRoute({ children }) {
 // ─── Layout wrapper — cambia max-width según la ruta ─────────────────────────
 function PageLayout({ children, loading }) {
   const { pathname } = useLocation();
-  const wide = pathname === '/grupos';
+  const wide = pathname === '/grupos' || pathname === '/eliminatoria';
   return (
     <main className={`mx-auto px-4 py-6 transition-all ${wide ? 'max-w-5xl' : 'max-w-3xl'}`}>
       {loading ? (

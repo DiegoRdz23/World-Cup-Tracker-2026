@@ -56,6 +56,11 @@ function MatchCard({ fixture, allGroupStandings, koResults, discipline }) {
         {played && <span className="ml-auto font-bold tabular-nums">{result.awayScore}</span>}
       </div>
 
+      {played && result.penalties && (
+        <div className="text-xs text-center font-mono" style={{ color: '#A07808' }}>
+          Penales {result.homePen}–{result.awayPen}
+        </div>
+      )}
       <div className="text-xs text-muted truncate">{fixture.stadium}</div>
     </div>
   );

@@ -142,9 +142,16 @@ function KOMatchCard({ fixture, home, away, result, onClick }) {
 
         <div className="text-center shrink-0 w-24">
           {played ? (
-            <span className="font-display font-bold tabular-nums text-xl" style={{ color: '#1C2E42' }}>
-              {result.homeScore} – {result.awayScore}
-            </span>
+            <div>
+              <span className="font-display font-bold tabular-nums text-xl" style={{ color: '#1C2E42' }}>
+                {result.homeScore} – {result.awayScore}
+              </span>
+              {result.penalties && (
+                <div className="text-xs font-mono" style={{ color: '#A07808' }}>
+                  {result.homePen}–{result.awayPen} pen.
+                </div>
+              )}
+            </div>
           ) : probs ? (
             <span className="text-xs text-muted font-mono whitespace-nowrap">
               λ {probs.lH.toFixed(1)} – {probs.lA.toFixed(1)}
@@ -431,11 +438,18 @@ function KOMatchDetail({ fixture, allGroupStandings, onBack }) {
           </div>
 
           {played ? (
-            <div
-              className="font-display font-bold tabular-nums"
-              style={{ fontSize: '2.5rem', letterSpacing: '-0.02em', color: '#1C2E42' }}
-            >
-              {result.homeScore} – {result.awayScore}
+            <div className="text-center">
+              <div
+                className="font-display font-bold tabular-nums"
+                style={{ fontSize: '2.5rem', letterSpacing: '-0.02em', color: '#1C2E42' }}
+              >
+                {result.homeScore} – {result.awayScore}
+              </div>
+              {result.penalties && (
+                <div className="text-xs font-mono mt-1" style={{ color: '#A07808' }}>
+                  Penales {result.homePen}–{result.awayPen}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-muted text-2xl font-display">vs</div>

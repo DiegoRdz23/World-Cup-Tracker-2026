@@ -151,24 +151,43 @@ function KOMatchRow({ fixture, existingResult, allGroupStandings, koResults, dis
   const away = resolveKOSlot(fixture.away, allGroupStandings, koResults, discipline);
   const played = existingResult?.played;
 
-  const [hs, setHs] = useState(played ? String(existingResult.homeScore) : '');
-  const [as_, setAs] = useState(played ? String(existingResult.awayScore) : '');
+  const [hs,    setHs]    = useState(played ? String(existingResult.homeScore) : '');
+  const [as_,   setAs]    = useState(played ? String(existingResult.awayScore) : '');
+  const [pen,   setPen]   = useState(played ? !!existingResult.penalties : false);
+  const [hsPen, setHsPen] = useState(played && existingResult?.homePen !== undefined ? String(existingResult.homePen) : '');
+  const [asPen, setAsPen] = useState(played && existingResult?.awayPen !== undefined ? String(existingResult.awayPen) : '');
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
 
+  const hNum   = parseInt(hs);
+  const aNum   = parseInt(as_);
+  const isDraw = !isNaN(hNum) && !isNaN(aNum) && hNum === aNum;
+
+  // pen activo solo tiene sentido cuando hay empate en tiempo regular/extra
+  const effectivePen = isDraw && pen;
+  const hPenNum = parseInt(hsPen);
+  const aPenNum = parseInt(asPen);
+  const penValid = !effectivePen || (!isNaN(hPenNum) && !isNaN(aPenNum) && hPenNum !== aPenNum);
+
+  const canSave = hs !== '' && as_ !== '' && !isNaN(hNum) && !isNaN(aNum)
+    && (!isDraw || effectivePen)
+    && penValid;
+
   async function handleSave() {
-    const h = parseInt(hs), a = parseInt(as_);
-    if (isNaN(h) || isNaN(a) || h < 0 || a < 0 || h === a) return;
+    if (!canSave) return;
     setSaving(true);
-    await onSave(fixture.id, h, a);
+    const data = effectivePen
+      ? { homeScore: hNum, awayScore: aNum, played: true, penalties: true, homePen: hPenNum, awayPen: aPenNum }
+      : { homeScore: hNum, awayScore: aNum, played: true };
+    await onSave(fixture.id, data);
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
 
   async function handleClear() {
     setSaving(true);
-    await onSave(fixture.id, null, null, false);
-    setHs(''); setAs('');
+    await onSave(fixture.id, null);
+    setHs(''); setAs(''); setPen(false); setHsPen(''); setAsPen('');
     setSaving(false);
   }
 
@@ -177,6 +196,8 @@ function KOMatchRow({ fixture, existingResult, allGroupStandings, koResults, dis
   return (
     <div className={`card2 space-y-2 ${played ? 'border-green/25' : ''}`}>
       <div className="tag text-xs">P{fixture.id} · {fixture.date} · {fixture.time}</div>
+
+      {/* Marcador en tiempo regular / extra */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 flex-1">
           <span>{home.flag}</span>
@@ -192,16 +213,58 @@ function KOMatchRow({ fixture, existingResult, allGroupStandings, koResults, dis
           <span>{away.flag}</span>
         </div>
       </div>
+
+      {/* Sección de penales: visible solo si hay empate */}
+      {isDraw && (
+        <div className="border-t border-border pt-2 space-y-2">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={pen}
+              onChange={e => { setPen(e.target.checked); if (!e.target.checked) { setHsPen(''); setAsPen(''); } }}
+              className="w-3.5 h-3.5 accent-blue"
+            />
+            <span className="text-xs" style={{ color: '#A07808' }}>Se definió por penales</span>
+          </label>
+
+          {pen && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted flex-1 text-right truncate">{home.name}</span>
+              <div className="flex items-center gap-1">
+                <input className="input-field" type="number" min="0" max="30" value={hsPen} onChange={e => setHsPen(e.target.value)} placeholder="–" />
+                <span className="text-xs text-muted px-1">pen.</span>
+                <input className="input-field" type="number" min="0" max="30" value={asPen} onChange={e => setAsPen(e.target.value)} placeholder="–" />
+              </div>
+              <span className="text-xs text-muted flex-1 truncate">{away.name}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="text-xs text-muted text-center">{fixture.stadium} · {fixture.city}</div>
+
       <div className="flex gap-2 justify-end">
-        {played && <button onClick={handleClear} className="text-xs text-muted hover:text-red px-2 py-1" disabled={saving}>Borrar</button>}
-        <button onClick={handleSave} disabled={saving || hs === '' || as_ === '' || parseInt(hs) === parseInt(as_)}
-          className={`text-xs font-bold px-3 py-1 rounded transition-all ${saved ? 'bg-green/20 text-green' : 'bg-green text-bg hover:opacity-90 disabled:opacity-40'}`}>
+        {played && (
+          <button onClick={handleClear} className="text-xs text-muted hover:text-red px-2 py-1" disabled={saving}>
+            Borrar
+          </button>
+        )}
+        <button
+          onClick={handleSave}
+          disabled={saving || !canSave}
+          className={`text-xs font-bold px-3 py-1 rounded transition-all ${saved ? 'bg-green/20 text-green' : 'bg-green text-bg hover:opacity-90 disabled:opacity-40'}`}
+        >
           {saved ? '✓ Guardado' : saving ? '…' : 'Guardar'}
         </button>
       </div>
-      {hs !== '' && as_ !== '' && parseInt(hs) === parseInt(as_) && (
-        <p className="text-xs text-red text-center">En KO no puede haber empate. Ingresa el resultado definitivo.</p>
+
+      {isDraw && !pen && hs !== '' && as_ !== '' && (
+        <p className="text-xs text-center" style={{ color: '#A07808' }}>
+          Empate — marca "Se definió por penales" para registrar al ganador.
+        </p>
+      )}
+      {effectivePen && !penValid && hsPen !== '' && asPen !== '' && (
+        <p className="text-xs text-red text-center">El marcador de penales no puede ser empate.</p>
       )}
     </div>
   );
@@ -306,9 +369,9 @@ export default function Admin() {
     await set(r, played ? { homeScore, awayScore, played: true } : null);
   }
 
-  async function saveKOResult(matchId, homeScore, awayScore, played = true) {
+  async function saveKOResult(matchId, data) {
     const r = ref(db, `ko_results/${matchId}`);
-    await set(r, played ? { homeScore, awayScore, played: true } : null);
+    await set(r, data);
   }
 
   return (

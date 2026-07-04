@@ -298,6 +298,7 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline
     const home = resolveKOSlot(fixture.home, allGroupStandings, koResults, discipline);
     const away = resolveKOSlot(fixture.away, allGroupStandings, koResults, discipline);
     if (!home || !away) return null;
+    if (result.penalties) return (result.homePen ?? 0) > (result.awayPen ?? 0) ? home : away;
     return result.homeScore > result.awayScore ? home : away;
   }
 
@@ -311,6 +312,7 @@ export function resolveKOSlot(slotCode, allGroupStandings, koResults, discipline
     const home = resolveKOSlot(fixture.home, allGroupStandings, koResults, discipline);
     const away = resolveKOSlot(fixture.away, allGroupStandings, koResults, discipline);
     if (!home || !away) return null;
+    if (result.penalties) return (result.homePen ?? 0) > (result.awayPen ?? 0) ? away : home;
     return result.homeScore > result.awayScore ? away : home;
   }
 

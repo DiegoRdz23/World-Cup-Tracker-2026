@@ -171,8 +171,8 @@ export default function App() {
 
   // Recalcular predicciones cada vez que cambian los resultados
   const predictions = useMemo(() => {
-    return runMonteCarlo(results, 8000);
-  }, [results]);
+    return runMonteCarlo(results, koResults, 8000);
+  }, [results, koResults]);
 
   return (
     <AppCtx.Provider value={{ results, discipline, koResults, predictions, loading, user, authLoading }}>

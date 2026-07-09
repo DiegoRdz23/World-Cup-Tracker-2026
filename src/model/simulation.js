@@ -1,6 +1,6 @@
 import { TEAMS, GROUPS } from '../data/teams';
 import { FIXTURES_BY_GROUP, FIXTURES } from '../data/fixtures';
-import { KO_FIXTURE_BY_ID } from '../data/ko-fixtures';
+import { KO_FIXTURES, KO_FIXTURE_BY_ID } from '../data/ko-fixtures';
 
 // ─── Modelo de predicción ────────────────────────────────────────────────────
 // Distribución de Poisson sobre goles esperados (xG)
@@ -147,7 +147,10 @@ function simulateKOMatch(codeA, codeB) {
 
 // ─── Monte Carlo completo ─────────────────────────────────────────────────────
 // Devuelve probabilidades por equipo: pQualify, pTop8, pFinal, pChampion
-export function runMonteCarlo(results, iterations = 8000) {
+// koResults: resultados reales de la fase eliminatoria ({ [fixtureId]: { played, homeScore, awayScore, penalties, homePen, awayPen } }).
+// Cuando un partido de KO ya se jugó en la realidad, se usa ese resultado en vez de simularlo,
+// para que un equipo ya eliminado no siga apareciendo con probabilidad de ser campeón.
+export function runMonteCarlo(results, koResults = {}, iterations = 8000) {
   const counts = {};
   for (const code of Object.keys(TEAMS)) {
     counts[code] = { qualify: 0, top8: 0, final: 0, champion: 0 };
@@ -172,32 +175,55 @@ export function runMonteCarlo(results, iterations = 8000) {
       .slice(0, 8);
     best8.forEach(t => counts[t.code].qualify++);
 
-    // 3. Armar bracket de 32
-    let bracket = [];
-    for (const group of Object.keys(GROUPS)) {
-      const st = groupStandings[group];
-      bracket.push(st[0].code);
-      bracket.push(st[1].code);
-    }
-    best8.forEach(t => bracket.push(t.code));
+    // 3. Resolver el bracket real (slots fijos de ko-fixtures.js), respetando
+    // los resultados reales ya jugados y simulando solo los partidos pendientes.
+    const winnerCache = {};
+    const loserCache  = {};
 
-    // Mezclar bracket (simulación de emparejamientos)
-    for (let i = bracket.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [bracket[i], bracket[j]] = [bracket[j], bracket[i]];
-    }
-
-    // 4. Rondas eliminatorias
-    let round = [...bracket];
-    while (round.length > 1) {
-      const next = [];
-      for (let i = 0; i < round.length; i += 2) {
-        next.push(simulateKOMatch(round[i], round[i + 1]));
+    const resolveSlot = (slotCode) => {
+      const posMatch = slotCode.match(/^([123])([A-L])$/);
+      if (posMatch) {
+        const pos   = parseInt(posMatch[1]) - 1;
+        const group = posMatch[2];
+        if (pos === 2) return THIRD_SLOT_ASSIGNMENTS[slotCode] ?? null;
+        return groupStandings[group]?.[pos]?.code ?? null;
       }
-      if (round.length === 8)  next.forEach(c => counts[c].top8++);
-      if (round.length === 4)  next.forEach(c => counts[c].final++);
-      if (round.length === 2)  counts[next[0]].champion++;
-      round = next;
+      const winMatch = slotCode.match(/^W(\d+)$/);
+      if (winMatch) return resolveFixture(parseInt(winMatch[1])).winner;
+      const loseMatch = slotCode.match(/^L(\d+)$/);
+      if (loseMatch) return resolveFixture(parseInt(loseMatch[1])).loser;
+      return null;
+    };
+
+    const resolveFixture = (id) => {
+      if (winnerCache[id]) return { winner: winnerCache[id], loser: loserCache[id] };
+      const fixture  = KO_FIXTURE_BY_ID[id];
+      const homeCode = resolveSlot(fixture.home);
+      const awayCode = resolveSlot(fixture.away);
+      const real     = koResults[String(id)];
+
+      let winner, loser;
+      if (real?.played) {
+        const homeWon = real.penalties
+          ? (real.homePen ?? 0) > (real.awayPen ?? 0)
+          : real.homeScore > real.awayScore;
+        winner = homeWon ? homeCode : awayCode;
+        loser  = homeWon ? awayCode : homeCode;
+      } else {
+        winner = simulateKOMatch(homeCode, awayCode);
+        loser  = winner === homeCode ? awayCode : homeCode;
+      }
+      winnerCache[id] = winner;
+      loserCache[id]  = loser;
+      return { winner, loser };
+    };
+
+    for (const fixture of KO_FIXTURES) {
+      if (fixture.round === '3rd') continue; // no afecta el título
+      const { winner } = resolveFixture(fixture.id);
+      if (fixture.round === 'QF')      counts[winner].top8++;
+      else if (fixture.round === 'SF') counts[winner].final++;
+      else if (fixture.round === 'F')  counts[winner].champion++;
     }
   }
 
